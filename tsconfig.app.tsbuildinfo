@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/bubble-sort.tsx","./src/components/insertion-sort.tsx","./src/components/selection-sort.tsx","./src/pages/home.page.tsx","./src/utils/hooks.ts","./src/utils/types.ts","./src/utils/utils.ts"],"version":"5.6.3"}

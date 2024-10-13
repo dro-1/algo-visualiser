@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,a,
+button,
+input,
+textarea {
+  font-family: Inter;
+}
+
+a,
+button {
+  cursor: pointer;
+}
