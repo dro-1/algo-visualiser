@@ -13,7 +13,7 @@ export const generateUID = () => {
 };
 
 export const wait = (secondsToWait: number) =>
-  new Promise((resolve) => setTimeout(() => resolve(0), secondsToWait * 1000));
+  new Promise((resolve) => setTimeout(resolve, secondsToWait * 1000));
 
 export const COLORS = {
   Highlight: "rgb(253 224 71)",

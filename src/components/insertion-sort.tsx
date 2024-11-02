@@ -129,15 +129,16 @@ export const InsertionSort: React.FC<InsertionSortProps> = ({
       }
     }
 
-    setBars(barsClone);
     for (const bar of barsClone) {
       highlight({
         color: COLORS.Finished,
         bars: [bar],
       });
       const barNode = getBarsMap().get(bar.key)!;
+      barNode.style.transition = "none";
       barNode.style.transform = "";
     }
+    setBars(barsClone);
   };
 
   useEffect(() => {
