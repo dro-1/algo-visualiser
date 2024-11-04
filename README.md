@@ -1,11 +1,16 @@
 # Sorting Visualizer
+- Insertion Sort
+- Bubble Sort
+- Selection Sort
+- Merge Sort
+- Quick Sort
 
-Use react router to route to the different sorters
+## Features
+- Adjustable speed
+- Adjustable number of bars
+- Fully responsive
+- Explanations on Merge Sort and Quick Sort
 
-use outlet in homepage to show the sorter
+[Live Link](https://algo-visual-dr.netlify.app/)
 
-control speed and count from app component
 
-pass it into the component being displayed on the route
-
-## still have to find a way to display the ui purely based on state
