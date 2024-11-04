@@ -22,4 +22,11 @@ export const COLORS = {
   Minimum: "rgb(168 85 247)",
   Finished: "rgb(239 68 68)",
   InsertionSorted: "rgb(249 115 22)",
+  Left: "#832161",
+  Right: "#F3DE8A",
 };
+
+export const viewportHeight = Math.max(
+  document.documentElement.clientHeight || 0,
+  window.innerHeight || 0
+);

@@ -1,6 +1,13 @@
 import { Bar } from "@/utils/types";
-import { COLORS, generateUID, getRandomNum, wait } from "@/utils/utils";
+import {
+  COLORS,
+  generateUID,
+  getRandomNum,
+  viewportHeight,
+  wait,
+} from "@/utils/utils";
 import { useEffect, useRef, useState } from "react";
+import { GrPowerReset } from "react-icons/gr";
 import { twMerge } from "tailwind-merge";
 
 type BubbleSortProps = {
@@ -18,7 +25,7 @@ export const BubbleSort: React.FC<BubbleSortProps> = ({
     new Array(count).fill(0).map((_, idx) => ({
       prevTransform: 0,
       index: idx,
-      value: getRandomNum(1, MAX_BAR),
+      value: getRandomNum(3, MAX_BAR),
       key: generateUID(),
     }))
   );
@@ -35,7 +42,8 @@ export const BubbleSort: React.FC<BubbleSortProps> = ({
   };
 
   const paintBar = (bar: Bar, color: string) => {
-    const barNode = getBarsMap().get(bar.key)!;
+    const barNode = getBarsMap().get(bar.key);
+    if (!barNode) return;
     barNode.style.backgroundColor = color;
   };
 
@@ -46,8 +54,9 @@ export const BubbleSort: React.FC<BubbleSortProps> = ({
   };
 
   const swap = async (bar1: Bar, bar2: Bar, barsClone: Bar[]) => {
-    const bar1Node = getBarsMap().get(bar1.key)!;
-    const bar2Node = getBarsMap().get(bar2.key)!;
+    const bar1Node = getBarsMap().get(bar1.key);
+    const bar2Node = getBarsMap().get(bar2.key);
+    if (!bar1Node || !bar2Node) return;
 
     highlight({
       color: COLORS.Swap,
@@ -116,33 +125,64 @@ export const BubbleSort: React.FC<BubbleSortProps> = ({
         break;
       }
     }
-    setBars(barsClone);
-    for (const bar of barsClone) {
-      highlight({
-        color: COLORS.Finished,
-        bars: [bar],
-      });
-      const barNode = getBarsMap().get(bar.key)!;
-      barNode.style.transform = "";
-    }
+
+    highlight({
+      color: COLORS.Finished,
+      bars: barsClone,
+    });
   };
 
   useEffect(() => {
     compareBars();
-  }, []);
+  }, [bars]);
+
+  useEffect(() => {
+    setBars(
+      new Array(count).fill(0).map((_, idx) => ({
+        prevTransform: 0,
+        index: idx,
+        value: getRandomNum(3, MAX_BAR),
+        key: generateUID(),
+      }))
+    );
+  }, [count]);
 
   useEffect(() => {
     speedRef.current = speed;
   }, [speed]);
 
-  useEffect(() => {
-    // console.log(bars.map((bar) => bar.value).join(","));
-  }, [bars]);
-
   return (
-    <div className="h-[90%] w-full flex flex-col justify-center">
-      <h1 className="text-4xl text-center font-bold mb-4"> Bubble Sort</h1>
-      <div className="bg-blue-300 flex justify-between items-end">
+    <div className="w-[98%] mx-auto flex flex-col justify-center">
+      <div className="flex justify-center items-center mb-4">
+        <h1 className="text-4xl text-center font-bold justify-center items-center inline-block">
+          Bubble Sort
+        </h1>
+        {/* <button
+          className="text-[#111] bg-[#ccc] p-2 rounded-full h-10 w-10 text-sm cursor-pointer ml-4"
+          onClick={() => setIsModalOpen(true)}
+        >
+          <FaInfoCircle className="text-2xl" />
+        </button> */}
+        <button
+          className="text-[#111] bg-[#ccc] p-2 rounded-full h-10 w-10 text-sm cursor-pointer ml-4"
+          onClick={() =>
+            setBars(
+              new Array(count).fill(0).map((_, idx) => ({
+                prevTransform: 0,
+                index: idx,
+                value: getRandomNum(3, MAX_BAR),
+                key: generateUID(),
+              }))
+            )
+          }
+        >
+          <GrPowerReset className="text-2xl" />
+        </button>
+      </div>
+      <div
+        className="bg-blue-300 flex justify-between items-end"
+        style={{ height: 0.78 * viewportHeight }}
+      >
         {bars.map((bar) => (
           <div
             key={bar.key}
@@ -152,7 +192,7 @@ export const BubbleSort: React.FC<BubbleSortProps> = ({
                 : getBarsMap().delete(bar.key)
             }
             className={twMerge("bg-black w-5 relative transition")}
-            style={{ height: 14 * bar.value }}
+            style={{ height: (bar.value / MAX_BAR) * (0.78 * viewportHeight) }}
           >
             <em className="not-italic absolute top-0 left-[50%] -translate-x-[50%] text-white text-xs">
               {bar.value}

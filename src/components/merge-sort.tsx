@@ -1,8 +1,18 @@
 import { Bar } from "@/utils/types";
-import { COLORS, generateUID, getRandomNum, wait } from "@/utils/utils";
+import {
+  COLORS,
+  generateUID,
+  getRandomNum,
+  viewportHeight,
+  wait,
+} from "@/utils/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { FaInfoCircle } from "react-icons/fa";
+import { GrPowerReset } from "react-icons/gr";
 import { twMerge } from "tailwind-merge";
+import { InfoModal } from "./info-modal";
+import { useMediaQuery } from "@/utils/hooks";
 
 type MergeSortProps = {
   count?: number;
@@ -10,20 +20,20 @@ type MergeSortProps = {
 };
 
 const MAX_BAR = 50;
-const HEIGHT_CONSTANT = 8;
 
 export const MergeSort: React.FC<MergeSortProps> = ({
   count = 30,
   speed = 10,
 }) => {
-  const [bars] = useState<Bar[]>(
+  const [bars, setBars] = useState<Bar[]>(
     new Array(count).fill(0).map((_, idx) => ({
       prevTransform: 0,
       index: idx,
-      value: getRandomNum(1, MAX_BAR),
+      value: getRandomNum(3, MAX_BAR),
       key: generateUID(),
     }))
   );
+  const { isMediaQueryMatched } = useMediaQuery(800);
   const barsRef = useRef<Map<string, HTMLDivElement> | null>(new Map());
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -54,13 +64,18 @@ export const MergeSort: React.FC<MergeSortProps> = ({
     color: string,
     barsRef: React.MutableRefObject<Map<string, HTMLDivElement> | null>
   ) => {
-    const barNode = getBarsMap(barsRef).get(bar.key)!;
+    const barNode = getBarsMap(barsRef).get(bar.key);
+    if (!barNode) return;
     barNode.style.backgroundColor = color;
   };
+
   const setBarValue = (bar: Bar, value: number) => {
     bar.value = value;
-    const barNode = getBarsMap(barsRef).get(bar.key)!;
-    barNode.style.height = `${bar.value * HEIGHT_CONSTANT}px`;
+    const barNode = getBarsMap(barsRef).get(bar.key);
+    if (!barNode) return;
+    barNode.style.height = `${
+      (bar.value / MAX_BAR) * (0.4 * viewportHeight)
+    }px`;
     barNode.querySelector("em")!.innerHTML = `${bar.value}`;
   };
 
@@ -232,19 +247,24 @@ export const MergeSort: React.FC<MergeSortProps> = ({
 
   useEffect(() => {
     const barsClone = bars.map((bar) => ({ ...bar }));
-    mergeHelper(0, barsClone.length - 1, barsClone);
-  }, []);
+    mergeHelper(0, barsClone.length - 1, barsClone).then(() =>
+      highlight({
+        color: COLORS.Finished,
+        bars: barsClone.map((bar) => [bar, barsRef]),
+      })
+    );
+  }, [bars]);
 
-  // const helper = async () => {
-  //   const barsClone = Array.from(bars);
-  //   await merge(0, 0, 1, 1, barsClone);
-  //   await merge(2, 2, 3, 3, barsClone);
-  //   await merge(4, 4, 5, 5, barsClone);
-  // };
-
-  // useEffect(() => {
-  //   helper();
-  // }, []);
+  useEffect(() => {
+    setBars(
+      new Array(count).fill(0).map((_, idx) => ({
+        prevTransform: 0,
+        index: idx,
+        value: getRandomNum(3, MAX_BAR),
+        key: generateUID(),
+      }))
+    );
+  }, [count]);
 
   useEffect(() => {
     speedRef.current = speed;
@@ -253,43 +273,62 @@ export const MergeSort: React.FC<MergeSortProps> = ({
   return (
     <div className=" w-full flex flex-col justify-center">
       {createPortal(
-        <InfoModal
+        <MergeSortInfoModal
           onClose={() => setIsModalOpen(false)}
           isOpen={isModalOpen}
         />,
         document.body
       )}
-      <h1 className="text-4xl text-center font-bold mb-4">
-        {" "}
-        Merge Sort{" "}
+      <div className="flex justify-center items-center mb-4">
+        <h1 className="text-4xl text-center font-bold justify-center items-center inline-block">
+          Merge Sort
+        </h1>
         <button
-          className="text-[#111] bg-[#ccc] p-2 rounded-full h-8 w-8 text-sm relative bottom-1 cursor-pointer"
+          className="text-[#111] bg-[#ccc] p-2 rounded-full h-10 w-10 text-sm cursor-pointer ml-4"
           onClick={() => setIsModalOpen(true)}
         >
-          <span>i</span>
+          <FaInfoCircle className="text-2xl" />
         </button>
-      </h1>
-      <div className={twMerge("flex w-full px-4", count > 40 && "flex-col")}>
+        <button
+          className="text-[#111] bg-[#ccc] p-2 rounded-full h-10 w-10 text-sm cursor-pointer ml-4"
+          onClick={() =>
+            setBars(
+              new Array(count).fill(0).map((_, idx) => ({
+                prevTransform: 0,
+                index: idx,
+                value: getRandomNum(3, MAX_BAR),
+                key: generateUID(),
+              }))
+            )
+          }
+        >
+          <GrPowerReset className="text-2xl" />
+        </button>
+      </div>
+
+      <div className={twMerge("flex flex-col w-full px-4")}>
         <Bars
           bars={bars}
           barMap={getBarsMap(barsRef)}
-          height={400}
-          heightConstant={8}
-          className={twMerge("w-1/2", count > 40 && "w-4/5 mx-auto")}
+          height={0.4 * viewportHeight}
+          className={twMerge("w-full")}
         />
         <div className="w-1/2 mx-auto flex flex-col justify-center items-center my-4">
-          <div className="flex gap-2 justify-between items-center">
+          <div
+            className={twMerge(
+              "flex flex-col gap-2 justify-between items-center",
+              isMediaQueryMatched && "flex-row"
+            )}
+          >
             <Bars
               bars={comparisonBars1}
               barMap={getBarsMap(comparisonBars1Ref)}
-              height={300}
-              heightConstant={6}
+              height={0.25 * viewportHeight}
             />
             <Bars
               bars={comparisonBars2}
               barMap={getBarsMap(comparisonBars2Ref)}
-              height={300}
-              heightConstant={6}
+              height={0.25 * viewportHeight}
             />
           </div>
         </div>
@@ -302,9 +341,8 @@ const Bars: React.FC<{
   bars: Bar[];
   barMap: Map<string, HTMLDivElement>;
   height: number;
-  heightConstant: number;
   className?: string;
-}> = ({ bars, barMap, height, heightConstant, className }) => {
+}> = ({ bars, barMap, height, className }) => {
   return (
     <div
       style={{ height }}
@@ -320,7 +358,7 @@ const Bars: React.FC<{
             node ? barMap.set(bar.key, node) : barMap.delete(bar.key)
           }
           className={twMerge("bg-black w-5 relative transition")}
-          style={{ height: heightConstant * bar.value }}
+          style={{ height: (bar.value / MAX_BAR) * height }}
         >
           <em className="not-italic absolute top-0 left-[50%] -translate-x-[50%] text-white text-xs">
             {bar.value}
@@ -331,21 +369,16 @@ const Bars: React.FC<{
   );
 };
 
-const InfoModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
-  isOpen,
-  onClose,
-}) => {
+const MergeSortInfoModal: React.FC<{
+  isOpen: boolean;
+  onClose: () => void;
+}> = ({ isOpen, onClose }) => {
   return (
-    <div
-      className={twMerge(
-        "fixed inset-0 bg-black/70 flex justify-center items-center transition h-screen",
-        isOpen && "opacity-100 z-10",
-        !isOpen && "opacity-0 -z-10"
-      )}
-      onClick={() => onClose()}
-    >
-      <div className="w-4/5 h-[80vh] overflow-y-auto bg-white rounded-lg p-4">
-        <div className="max-w-[700px] mx-auto ">
+    <InfoModal
+      isOpen={isOpen}
+      onClose={onClose}
+      content={
+        <>
           <h1 className="mx-auto text-center text-4xl font-bold mb-4">
             Merge Sort
           </h1>
@@ -366,11 +399,11 @@ const InfoModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
           <p className="mb-4">
             We'll be using the array [8,4,3,9,0,1] to go through the steps
           </p>
-          <ul className="list-disc space-y-2">
+          <ul className="space-y-2">
             <li className="">
               <span className="block">
                 {" "}
-                Slice the array in half till you get to an array of length 1.
+                - Slice the array in half till you get to an array of length 1.
               </span>
               <span>
                 [8,4,3,9,0,1] -&gt; [8,4,3], [9,0,1] -&gt; [8,4], [3] -&gt; [8],
@@ -379,49 +412,49 @@ const InfoModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
             </li>
             <li className="">
               <span className="block">
-                Merge the arrays from the bottom up ensuring the resultant array
-                is sorted
+                - Merge the arrays from the bottom up ensuring the resultant
+                array is sorted
               </span>
               <span>[8], [4] -&gt; [4,8]</span>
             </li>
             <li className="">
               <span className="block">
-                Arrays of size 1 are seen as already sorted so it is used as the
-                base case e.g
+                - Arrays of size 1 are seen as already sorted so it is used as
+                the base case e.g
               </span>
               <span>[3]</span>
             </li>
             <li className="">
-              <span className="block">Merging</span>
+              <span className="block">- Merging</span>
               <span>[4,8], [3] -&gt; [3,4,8]</span>
             </li>
             <li className="">
-              <span className="block">Split</span>
+              <span className="block">- Split</span>
               <span>[9,0,1] -&gt; [9,0], [1] </span>
             </li>
             <li className="">
-              <span className="block">Split</span>
+              <span className="block">- Split</span>
               <span>[9,0] -&gt; [9], [0] </span>
             </li>
             <li className="">
-              <span className="block">Merge</span>
+              <span className="block">- Merge</span>
               <span>[9], [0] -&gt; [0,9] </span>
             </li>
             <li className="">
-              <span className="block">Merge</span>
+              <span className="block">- Merge</span>
               <span>[0,9], [1] -&gt; [0,1,9] </span>
             </li>
             <li className="">
-              <span className="block">Merge</span>
+              <span className="block">- Merge</span>
               <span>[3,4,8], [0,1,9] -&gt; [0,1,3,4,8,9] </span>
             </li>
             <li className="">
-              <span className="block">Sorted</span>
+              <span className="block">- Sorted</span>
               <span>[0,1,3,4,8,9]🔥 </span>
             </li>
           </ul>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 };
